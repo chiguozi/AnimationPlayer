@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
 
 public class AnimationClipControl
 {
@@ -11,8 +10,8 @@ public class AnimationClipControl
 
     GameObject _ownerGo;
     bool _play = false;
-    float _startTime;
-    float _escapeTime;
+    double _startTime;
+    double _escapeTime = 0;
     public static void Init()
     {
         AnimationMode.StartAnimationMode();
@@ -38,17 +37,41 @@ public class AnimationClipControl
 
     public void Play()
     {
-
+        _play = true;
+        _startTime = EditorApplication.timeSinceStartup;
     }
 
     public void Update()
     {
+        if (!_play)
+            return;
+        var now = EditorApplication.timeSinceStartup;
+        _escapeTime = now - _startTime;
+        PlayAnimation();
+        if (_escapeTime >= _length)
+        {
+            _play = false;
+            _escapeTime = 0;
+        }
+    }
 
+    public void Step(float delTime)
+    {
+        _play = false;
+        _escapeTime += delTime;
+        if (_escapeTime >= _length)
+            _escapeTime = 0;
+        PlayAnimation();
     }
 
     public void Reset()
     {
-
+        _escapeTime = 0;
+        _play = false;
     }
 
+    void PlayAnimation()
+    {
+        AnimationMode.SampleAnimationClip(_ownerGo, _clip, (float)_escapeTime);
+    }
 }
