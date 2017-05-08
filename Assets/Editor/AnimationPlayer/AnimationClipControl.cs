@@ -6,16 +6,20 @@ public class AnimationClipControl
 {
     AnimationClip _clip;
     float _length;
-    public float length { get { return _length; } }
+   
     public bool loop = false;
 
     public Action playEndCallback;
 
     GameObject _ownerGo;
     bool _isPlaying = false;
-    double _startTime;
-    double _escapeTime = 0;
-    double _currentTime;
+    float _startTime;
+    float _escapeTime = 0;
+
+    public float escapeTime { get { return _escapeTime; } }
+    public bool isPlaying { get { return _isPlaying; } }
+    public float length { get { return _length; } }
+
     public static void Init()
     {
         AnimationMode.StartAnimationMode();
@@ -46,7 +50,7 @@ public class AnimationClipControl
         if (!_isPlaying)
             return;
         var now = EditorApplication.timeSinceStartup;
-        _escapeTime = now - _startTime;
+        _escapeTime = (float)now - _startTime;
         PlayAnimation();
         if (_escapeTime >= _length)
         {
@@ -69,7 +73,7 @@ public class AnimationClipControl
         if (_isPlaying)
             return;
         _isPlaying = true;
-        _startTime = EditorApplication.timeSinceStartup;
+        _startTime = (float)EditorApplication.timeSinceStartup;
         if(_escapeTime > 0)
         {
             _startTime -= _escapeTime;
@@ -90,8 +94,15 @@ public class AnimationClipControl
         _isPlaying = false;
     }
 
+    public void SetTime(float time)
+    {
+        _isPlaying = false;
+        _escapeTime = time;
+        PlayAnimation();
+    }
+
     void PlayAnimation()
     {
-        AnimationMode.SampleAnimationClip(_ownerGo, _clip, (float)_escapeTime);
+        AnimationMode.SampleAnimationClip(_ownerGo, _clip, _escapeTime);
     }
 }

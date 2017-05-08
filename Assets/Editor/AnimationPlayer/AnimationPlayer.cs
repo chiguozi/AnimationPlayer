@@ -56,8 +56,12 @@ public class AnimationPlayerWindow  : EditorWindow
     {
         if(animationCtrl != null)
         {
+            //刷新Silder
+            if (animationCtrl.isPlaying)
+                Repaint();
             animationCtrl.Update();
         }
+
     }
     void InitAnimations()
     {
@@ -86,6 +90,16 @@ public class AnimationPlayerWindow  : EditorWindow
             return;
         ShowSelectAniamtionView();
         ShowBtns();
+        ShowSlider();
+    }
+
+    void ShowSlider()
+    {
+        float time = EditorGUILayout.Slider(animationCtrl.escapeTime, 0, animationCtrl.length);
+        if(time != animationCtrl.escapeTime)
+        {
+            animationCtrl.SetTime(time);
+        }
     }
 
 
