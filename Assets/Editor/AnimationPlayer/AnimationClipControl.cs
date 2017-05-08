@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using System;
 
 public class AnimationClipControl
 {
@@ -8,10 +9,13 @@ public class AnimationClipControl
     public float length { get { return _length; } }
     public bool loop = false;
 
+    public Action playEndCallback;
+
     GameObject _ownerGo;
-    bool _play = false;
+    bool _isPlaying = false;
     double _startTime;
     double _escapeTime = 0;
+    double _currentTime;
     public static void Init()
     {
         AnimationMode.StartAnimationMode();
@@ -35,39 +39,55 @@ public class AnimationClipControl
         }
     }
 
-    public void Play()
-    {
-        _play = true;
-        _startTime = EditorApplication.timeSinceStartup;
-    }
+
 
     public void Update()
     {
-        if (!_play)
+        if (!_isPlaying)
             return;
         var now = EditorApplication.timeSinceStartup;
         _escapeTime = now - _startTime;
         PlayAnimation();
         if (_escapeTime >= _length)
         {
-            _play = false;
+            _isPlaying = false;
             _escapeTime = 0;
+            if(null != playEndCallback)
+            {
+                playEndCallback();
+            }
         }
     }
 
+    public void Pause()
+    {
+        _isPlaying = false;
+    }
+
+    public void Play()
+    {
+        if (_isPlaying)
+            return;
+        _isPlaying = true;
+        _startTime = EditorApplication.timeSinceStartup;
+        if(_escapeTime > 0)
+        {
+            _startTime -= _escapeTime;
+        }
+    }
     public void Step(float delTime)
     {
-        _play = false;
+        _isPlaying = false;
         _escapeTime += delTime;
         if (_escapeTime >= _length)
             _escapeTime = 0;
         PlayAnimation();
     }
 
-    public void Reset()
+    public void Stop()
     {
         _escapeTime = 0;
-        _play = false;
+        _isPlaying = false;
     }
 
     void PlayAnimation()
