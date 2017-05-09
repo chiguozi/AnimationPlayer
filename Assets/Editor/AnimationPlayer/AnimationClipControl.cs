@@ -13,16 +13,32 @@ public class AnimationClipControl
 
     GameObject _ownerGo;
     bool _isPlaying = false;
-    float _startTime;
+    float _lastTime;
     float _escapeTime = 0;
+    float _speed = 1f;
 
     public float escapeTime { get { return _escapeTime; } }
     public bool isPlaying { get { return _isPlaying; } }
-    public float length { get { return _length; } }
-
-    public static void Init()
+    public float length
     {
-        AnimationMode.StartAnimationMode();
+        get
+        {
+            return _length;
+        }
+    }
+
+    public float speed
+    {
+        set
+        {
+            if (_speed == value)
+                return;
+            if (value <= 0)
+                _speed = 0;
+            else
+                _speed = value;
+        }
+        get { return _speed; }
     }
 
     public void SetOwnGo(GameObject go)
@@ -50,16 +66,25 @@ public class AnimationClipControl
         if (!_isPlaying)
             return;
         var now = EditorApplication.timeSinceStartup;
-        _escapeTime = (float)now - _startTime;
+        float delTime = (float)now - _lastTime;
+        _lastTime = (float)now;
+        _escapeTime += delTime * speed;
         PlayAnimation();
         if (_escapeTime >= _length)
         {
-            _isPlaying = false;
-            _escapeTime = 0;
-            if(null != playEndCallback)
+            if (!loop)
             {
-                playEndCallback();
+                _isPlaying = false;
+                if (null != playEndCallback)
+                {
+                    playEndCallback();
+                }
             }
+            else
+            {
+                _lastTime = (float)now;
+            }
+            _escapeTime = 0;
         }
     }
 
@@ -73,11 +98,11 @@ public class AnimationClipControl
         if (_isPlaying)
             return;
         _isPlaying = true;
-        _startTime = (float)EditorApplication.timeSinceStartup;
-        if(_escapeTime > 0)
-        {
-            _startTime -= _escapeTime;
-        }
+        _lastTime = (float)EditorApplication.timeSinceStartup;
+        //if(_escapeTime > 0)
+        //{
+        //    _lastTime -= _escapeTime;
+        //}
     }
     public void Step(float delTime)
     {
